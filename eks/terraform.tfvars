@@ -7,7 +7,7 @@ igw-name              = "igw"
 # Public subnets in 2 AZs
 pub-subnet-count      = 3
 pub-cidr-block        = ["10.16.0.0/20", "10.16.16.0/20", "10.16.32.0/20"]
-pub-availability-zone = ["us-east-1a", "us-east-1b", "us-east-1c"]
+pub-availability-zone = ["ap-southeast-1a", "ap-southeast-1b", "ap-southeast-1c"]
 pub-sub-name          = "subnet-public"
 
 # ✅ Updated: 3 private subnets for HA
