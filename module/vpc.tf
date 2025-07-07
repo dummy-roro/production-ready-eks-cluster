@@ -11,7 +11,6 @@ resource "aws_vpc" "vpc" {
   tags = {
     Name = var.vpc-name
     Env  = var.env
-
   }
 }
 
@@ -23,8 +22,6 @@ resource "aws_internet_gateway" "igw" {
     env                                           = var.env
     "kubernetes.io/cluster/${local.cluster-name}" = "owned"
   }
-
-  depends_on = [aws_vpc.vpc]
 }
 
 resource "aws_subnet" "public-subnet" {
@@ -40,9 +37,6 @@ resource "aws_subnet" "public-subnet" {
     "kubernetes.io/cluster/${local.cluster-name}" = "owned"
     "kubernetes.io/role/elb"                      = "1"
   }
-
-  depends_on = [aws_vpc.vpc,
-  ]
 }
 
 resource "aws_subnet" "private-subnet" {
@@ -58,11 +52,7 @@ resource "aws_subnet" "private-subnet" {
     "kubernetes.io/cluster/${local.cluster-name}" = "owned"
     "kubernetes.io/role/internal-elb"             = "1"
   }
-
-  depends_on = [aws_vpc.vpc,
-  ]
 }
-
 
 resource "aws_route_table" "public-rt" {
   vpc_id = aws_vpc.vpc.id
@@ -76,84 +66,39 @@ resource "aws_route_table" "public-rt" {
     Name = var.public-rt-name
     env  = var.env
   }
-
-  depends_on = [aws_vpc.vpc
-  ]
 }
 
 resource "aws_route_table_association" "public-rt-association" {
-  count          = 2
+  count          = var.pub-subnet-count
   route_table_id = aws_route_table.public-rt.id
   subnet_id      = aws_subnet.public-subnet[count.index].id
-
-  depends_on = [aws_vpc.vpc,
-    aws_subnet.public-subnet
-  ]
-}
-
-resource "aws_eip" "ngw-eip" {
-  domain = "vpc"
-
-  tags = {
-    Name = var.eip-name
-  }
-
-  depends_on = [aws_vpc.vpc
-  ]
-
-}
-
-resource "aws_nat_gateway" "ngw" {
-  allocation_id = aws_eip.ngw-eip.id
-  subnet_id     = aws_subnet.public-subnet[0].id
-
-  tags = {
-    Name = var.ngw-name
-  }
-
-  depends_on = [aws_vpc.vpc,
-    aws_eip.ngw-eip
-  ]
 }
 
 resource "aws_route_table" "private-rt" {
   vpc_id = aws_vpc.vpc.id
 
-  route {
-    cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.ngw.id
-  }
-
   tags = {
     Name = var.private-rt-name
     env  = var.env
   }
-
-  depends_on = [aws_vpc.vpc,
-  ]
 }
 
 resource "aws_route_table_association" "private-rt-association" {
-  count          = 2
+  count          = var.pri-subnet-count
   route_table_id = aws_route_table.private-rt.id
   subnet_id      = aws_subnet.private-subnet[count.index].id
-
-  depends_on = [aws_vpc.vpc,
-    aws_subnet.private-subnet
-  ]
 }
 
 resource "aws_security_group" "eks-cluster-sg" {
   name        = var.eks-sg
-  description = "Allow 443 from Jump Server only"
-
-  vpc_id = aws_vpc.vpc.id
+  description = "Allow 443 from trusted sources"
+  vpc_id      = aws_vpc.vpc.id
 
   ingress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] // It should be specific IP range
+    cidr_blocks = ["0.0.0.0/0"] # 🔐 Replace with trusted CIDR for prod
   }
 
   egress {
@@ -165,5 +110,49 @@ resource "aws_security_group" "eks-cluster-sg" {
 
   tags = {
     Name = var.eks-sg
+  }
+}
+
+########################
+# VPC Endpoints (to replace NAT)
+########################
+
+resource "aws_vpc_endpoint" "ecr_api" {
+  vpc_id              = aws_vpc.vpc.id
+  service_name        = "com.amazonaws.${var.aws-region}.ecr.api"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = aws_subnet.private-subnet[*].id
+  security_group_ids  = [aws_security_group.eks-cluster-sg.id]
+  private_dns_enabled = true
+
+  tags = {
+    Name = "ecr-api-endpoint"
+    Env  = var.env
+  }
+}
+
+resource "aws_vpc_endpoint" "ecr_dkr" {
+  vpc_id              = aws_vpc.vpc.id
+  service_name        = "com.amazonaws.${var.aws-region}.ecr.dkr"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = aws_subnet.private-subnet[*].id
+  security_group_ids  = [aws_security_group.eks-cluster-sg.id]
+  private_dns_enabled = true
+
+  tags = {
+    Name = "ecr-dkr-endpoint"
+    Env  = var.env
+  }
+}
+
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id            = aws_vpc.vpc.id
+  service_name      = "com.amazonaws.${var.aws-region}.s3"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = [aws_route_table.private-rt.id]
+
+  tags = {
+    Name = "s3-endpoint"
+    Env  = var.env
   }
 }
