@@ -1,54 +1,75 @@
-variable "cluster-name" {}
-variable "cidr-block" {}
-variable "vpc-name" {}
-variable "env" {}
-variable "igw-name" {}
-variable "pub-subnet-count" {}
-variable "pub-cidr-block" {
-  type = list(string)
-}
-variable "pub-availability-zone" {
-  type = list(string)
-}
-variable "pub-sub-name" {}
-variable "pri-subnet-count" {}
-variable "pri-cidr-block" {
-  type = list(string)
-}
-variable "pri-availability-zone" {
-  type = list(string)
-}
-variable "pri-sub-name" {}
-variable "public-rt-name" {}
-variable "private-rt-name" {}
-variable "eip-name" {}
-variable "ngw-name" {}
-variable "eks-sg" {}
-
-#IAM
-variable "is_eks_role_enabled" {
-  type = bool
-}
-variable "is_eks_nodegroup_role_enabled" {
-  type = bool
+variable "env" {
+  type        = string
+  description = "Deployment environment name (e.g., dev, prod)."
 }
 
-# EKS
-variable "is-eks-cluster-enabled" {}
-variable "cluster-version" {}
-variable "endpoint-private-access" {}
-variable "endpoint-public-access" {}
+variable "aws_region" {
+  type        = string
+  description = "The AWS region to deploy resources in."
+}
+
+variable "cluster_name" {
+  type        = string
+  description = "The base name for the EKS cluster and its resources."
+}
+
+variable "cluster_version" {
+  type        = string
+  description = "The Kubernetes version for the EKS cluster."
+}
+
+variable "vpc_cidr_block" {
+  type        = string
+  description = "The CIDR block for the VPC."
+}
+
+variable "public_subnets" {
+  type = list(object({
+    az   = string
+    cidr = string
+  }))
+  description = "A list of objects defining the public subnets."
+}
+
+variable "private_subnets" {
+  type = list(object({
+    az   = string
+    cidr = string
+  }))
+  description = "A list of objects defining the private subnets."
+}
+
+variable "node_groups" {
+  type        = any
+  description = "A map of objects defining the EKS managed node groups."
+}
+
 variable "addons" {
   type = list(object({
     name    = string
     version = string
   }))
+  description = "A list of EKS add-ons to install."
+  default     = []
 }
-variable "ondemand_instance_types" {}
-variable "spot_instance_types" {}
-variable "desired_capacity_on_demand" {}
-variable "min_capacity_on_demand" {}
-variable "max_capacity_on_demand" {}
-variable "desired_capacity_spot" {}
-variable "min_capacity_spot" {}
-variable "max_capacity_spot" {}
+
+variable "endpoint_public_access" {
+  type        = bool
+  description = "Indicates whether or not the Amazon EKS public API server endpoint is enabled."
+}
+
+variable "endpoint_private_access" {
+  type        = bool
+  description = "Indicates whether or not the Amazon EKS private API server endpoint is enabled."
+}
+
+variable "trusted_security_group_id" {
+  type        = string
+  description = "The ID of a security group that is allowed to access the EKS API server private endpoint."
+}
+
+variable "tags" {
+  type        = map(string)
+  description = "A map of tags to apply to all resources."
+  default     = {}
+}
