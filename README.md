@@ -43,13 +43,13 @@ terraform init
 ### 2. Plan the Deployment
 
 ```bash
-terraform plan -var-file="dev.tfvars"
+terraform plan -var-file="terraform.tfvars"
 ```
 
 ### 3. Apply the Configuration
 
 ```bash
-terraform apply -var-file="dev.tfvars"
+terraform apply -var-file="terraform.tfvars"
 ```
 
 ## 📡 Accessing the Cluster
