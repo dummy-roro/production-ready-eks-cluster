@@ -22,6 +22,7 @@ resource "aws_internet_gateway" "igw" {
     env                                           = var.env
     "kubernetes.io/cluster/${local.cluster-name}" = "owned"
   }
+  depends_on = [aws_vpc.vpc]
 }
 
 resource "aws_subnet" "public-subnet" {
@@ -37,6 +38,7 @@ resource "aws_subnet" "public-subnet" {
     "kubernetes.io/cluster/${local.cluster-name}" = "owned"
     "kubernetes.io/role/elb"                      = "1"
   }
+  depends_on = [aws_vpc.vpc]
 }
 
 resource "aws_subnet" "private-subnet" {
@@ -52,6 +54,7 @@ resource "aws_subnet" "private-subnet" {
     "kubernetes.io/cluster/${local.cluster-name}" = "owned"
     "kubernetes.io/role/internal-elb"             = "1"
   }
+  depends_on = [aws_vpc.vpc]
 }
 
 resource "aws_route_table" "public-rt" {
@@ -66,12 +69,17 @@ resource "aws_route_table" "public-rt" {
     Name = var.public-rt-name
     env  = var.env
   }
+  depends_on = [aws_vpc.vpc]
 }
 
 resource "aws_route_table_association" "public-rt-association" {
   count          = var.pub-subnet-count
   route_table_id = aws_route_table.public-rt.id
   subnet_id      = aws_subnet.public-subnet[count.index].id
+
+  depends_on = [aws_vpc.vpc,
+    aws_subnet.public-subnet
+  ]
 }
 
 resource "aws_route_table" "private-rt" {
@@ -81,24 +89,29 @@ resource "aws_route_table" "private-rt" {
     Name = var.private-rt-name
     env  = var.env
   }
+  depends_on = [aws_vpc.vpc]
 }
 
 resource "aws_route_table_association" "private-rt-association" {
   count          = var.pri-subnet-count
   route_table_id = aws_route_table.private-rt.id
   subnet_id      = aws_subnet.private-subnet[count.index].id
+
+  depends_on = [aws_vpc.vpc,
+    aws_subnet.private-subnet
+  ]
 }
 
 resource "aws_security_group" "eks-cluster-sg" {
   name        = var.eks-sg
-  description = "Allow 443 from trusted sources"
+  description = "Allow 443 from trusted sources only" # for Bastion host 
   vpc_id      = aws_vpc.vpc.id
 
   ingress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # 🔐 Replace with trusted CIDR for prod
+    cidr_blocks = ["0.0.0.0/0"] # 🔐 Replace with trusted CIDR for prod 
   }
 
   egress {
@@ -113,9 +126,7 @@ resource "aws_security_group" "eks-cluster-sg" {
   }
 }
 
-########################
-# VPC Endpoints (to replace NAT)
-########################
+# VPC Endpoints
 
 resource "aws_vpc_endpoint" "ecr_api" {
   vpc_id              = aws_vpc.vpc.id
