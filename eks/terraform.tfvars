@@ -1,60 +1,54 @@
-env                   = "prod"
-aws-region            = "ap-southeast-1"
-vpc-cidr-block        = "10.16.0.0/16"
-vpc-name              = "vpc"
-igw-name              = "igw"
+# terraform.tfvars
 
-# Public subnets in 3 AZs
-pub-subnet-count      = 3
-pub-cidr-block        = ["10.16.0.0/20", "10.16.16.0/20", "10.16.32.0/20"]
-pub-availability-zone = ["ap-southeast-1a", "ap-southeast-1b", "ap-southeast-1c"]
-pub-sub-name          = "subnet-public"
+# General Settings
+env          = "dev"
+aws_region   = "ap-southeast-1"
+cluster_name = "solara-cluster"
 
-# 3 private subnets for HA
-pri-subnet-count      = 3
-pri-cidr-block        = ["10.16.128.0/20", "10.16.144.0/20", "10.16.160.0/20"]
-pri-availability-zone = ["ap-southeast-1a", "ap-southeast-1b", "ap-southeast-1c"]
-pri-sub-name          = "subnet-private"
+# VPC Configuration
+vpc_cidr_block = "10.16.0.0/16"
 
-public-rt-name        = "public-route-table"
-private-rt-name       = "private-route-table"
+# Define your public and private subnets as a list of objects.
+# The module will create as many as you define here.
+public_subnets = [
+  { az = "ap-southeast-1a", cidr = "10.16.0.0/20" },
+  { az = "ap-southeast-1b", cidr = "10.16.16.0/20" },
+]
 
-#eip-name              = "elasticip-ngw"
-#ngw-name              = "ngw"
+private_subnets = [
+  { az = "ap-southeast-1a", cidr = "10.16.128.0/20" },
+  { az = "ap-southeast-1b", cidr = "10.16.144.0/20" },
+]
 
-eks-sg                = "eks-sg"
+# EKS Cluster Settings
+cluster_version           = "1.32"
+endpoint_private_access   = true
+endpoint_public_access    = false # Set to true if you need public access
+trusted_security_group_id = "sg-0123456789abcdef" # IMPORTANT: The ID of a security group that can access the cluster's private endpoint
 
-# EKS settings
-is-eks-cluster-enabled     = true
-cluster-version            = "1.32"
-cluster-name               = "eks-cluster"
-endpoint-private-access    = false
-endpoint-public-access     = true
-
-ondemand_instance_types    = ["t3a.medium"]
-spot_instance_types        = ["t3a.medium", "t3a.xlarge"]
-desired_capacity_on_demand = "1"
-min_capacity_on_demand     = "1"
-max_capacity_on_demand     = "5"
-desired_capacity_spot      = "2"
-min_capacity_spot          = "2"
-max_capacity_spot          = "10"
-
-addons = [
-  {
-    name    = "vpc-cni"
-    version = "v1.19.2-eksbuild.1"
+# Define one or more EKS managed node groups.
+# The key for each group (e.g., "ondemand_t3") becomes part of its name.
+node_groups = {
+  ondemand_t3 = {
+    instance_types = ["t3.medium"]
+    capacity_type  = "ON_DEMAND"
+    min_size       = 1
+    max_size       = 5
+    desired_size   = 1
   },
-  {
-    name    = "coredns"
-    version = "v1.11.4-eksbuild.1"
-  },
-  {
-    name    = "kube-proxy"
-    version = "v1.31.3-eksbuild.2"
-  },
-  {
-    name    = "aws-ebs-csi-driver"
-    version = "v1.38.1-eksbuild.1"
+  spot_t3 = {
+    instance_types = ["t3.large", "t3a.large"]
+    capacity_type  = "SPOT"
+    min_size       = 2
+    max_size       = 10
+    desired_size   = 2
   }
+}
+
+# EKS Add-ons - ensure versions are compatible with your cluster_version
+addons = [
+  { name = "vpc-cni", version = "v1.16.3-eksbuild.1" },
+  { name = "coredns", version = "v1.10.1-eksbuild.7" },
+  { name = "kube-proxy", version = "v1.29.0-eksbuild.1" },
+  { name = "aws-ebs-csi-driver", version = "v1.28.0-eksbuild.1" }
 ]
