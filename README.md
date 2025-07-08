@@ -91,7 +91,7 @@ Ensure port 22 is open and your IP is whitelisted in security group.
 
 ## 📦 Add-ons
 
-Define add-ons in `dev.tfvars`:
+Define add-ons in `terraform.tfvars`:
 
 ```hcl
 addons = [
@@ -109,7 +109,7 @@ addons = [
 ## 🧹 Cleanup
 
 ```bash
-terraform destroy -var-file="dev.tfvars"
+terraform destroy -var-file="terraform.tfvars"
 ```
 
 ## 📚 References
