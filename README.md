@@ -11,7 +11,7 @@ This Terraform project provisions a **private Amazon EKS cluster** with a **bast
 ## 📂 Project Structure
 
 ```
-terraform-eks-private-cluster/
+production-ready-eks-cluster/
 ├── main.tf                 # Root Terraform config
 ├── variables.tf            # Input variables
 ├── outputs.tf              # Outputs for reference
@@ -22,6 +22,7 @@ terraform-eks-private-cluster/
 │   ├── bastion/            # Bastion EC2 instance + SSM
 │   ├── eks/                # EKS Cluster, Node Groups, aws-auth
 │   └── iam/                # IAM Roles for EKS + Bastion
+└── README.md
 ```
 
 ## 🔧 Prerequisites
