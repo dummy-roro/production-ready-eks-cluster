@@ -27,7 +27,7 @@ production-ready-eks-cluster/
 
 ## 🔧 Prerequisites
 
-- Terraform >= 1.3
+- Terraform >= 1.32
 - AWS CLI configured (`aws configure`)
 - Existing EC2 Key Pair name (for Bastion)
 - IAM user with privileges to provision VPC, EC2, EKS, IAM, etc.
