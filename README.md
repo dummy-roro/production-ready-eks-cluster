@@ -64,6 +64,11 @@ Use SSM Session Manager to connect:
 aws ssm start-session --target <instance-id>
 ```
 
+Or
+
+EC2 connect via SSM in AWS console.
+
+
 ### ✅ Option 2: SSH (Fallback)
 
 Ensure port 22 is open and your IP is whitelisted in security group.
