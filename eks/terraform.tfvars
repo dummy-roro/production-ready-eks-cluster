@@ -1,5 +1,3 @@
-# terraform.tfvars
-
 # General Settings
 env          = "dev"
 aws_region   = "ap-southeast-1"
@@ -13,11 +11,13 @@ vpc_cidr_block = "10.16.0.0/16"
 public_subnets = [
   { az = "ap-southeast-1a", cidr = "10.16.0.0/20" },
   { az = "ap-southeast-1b", cidr = "10.16.16.0/20" },
+  { az = "ap-southeast-1c", cidr = "10.16.32.0/20" },
 ]
 
 private_subnets = [
   { az = "ap-southeast-1a", cidr = "10.16.128.0/20" },
   { az = "ap-southeast-1b", cidr = "10.16.144.0/20" },
+  { az = "ap-southeast-1c", cidr = "10.16.160.0/20" },
 ]
 
 # EKS Cluster Settings
