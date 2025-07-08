@@ -1,6 +1,8 @@
 # VPC
 resource "aws_vpc" "main" {
-  cidr_block = var.vpc_cidr_block
+  cidr_block           = var.vpc_cidr_block
+  enable_dns_support   = true
+  enable_dns_hostnames = true
   tags = {
     Name = "${var.env}-${var.vpc_name}"
   }
@@ -8,12 +10,13 @@ resource "aws_vpc" "main" {
 
 # Public Subnets
 resource "aws_subnet" "public" {
-  count             = var.pub_subnet_count
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = element(var.pub_cidr_block, count.index)
-  availability_zone = element(var.pub_availability_zone, count.index)
+  count                   = var.pub_subnet_count
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = element(var.pub_cidr_block, count.index)
+  availability_zone       = element(var.pub_availability_zone, count.index)
+  map_public_ip_on_launch = true
   tags = {
-    Name = "${var.env}-${var.pub_sub_name}-${count.index + 1}"
+    Name                     = "${var.env}-public-subnet-${count.index + 1}"
     "kubernetes.io/role/elb" = "1"
   }
 }
@@ -25,7 +28,7 @@ resource "aws_subnet" "private" {
   cidr_block        = element(var.pri_cidr_block, count.index)
   availability_zone = element(var.pri_availability_zone, count.index)
   tags = {
-    Name = "${var.env}-${var.pri_sub_name}-${count.index + 1}"
+    Name                              = "${var.env}-private-subnet-${count.index + 1}"
     "kubernetes.io/role/internal-elb" = "1"
   }
 }
@@ -34,7 +37,7 @@ resource "aws_subnet" "private" {
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
   tags = {
-    Name = "${var.env}-${var.igw_name}"
+    Name = "${var.env}-igw"
   }
 }
 
@@ -46,7 +49,7 @@ resource "aws_route_table" "public" {
     gateway_id = aws_internet_gateway.main.id
   }
   tags = {
-    Name = "${var.env}-${var.public_rt_name}"
+    Name = "${var.env}-public-rt"
   }
 }
 
@@ -61,7 +64,7 @@ resource "aws_eip" "nat" {
   count  = var.pri_subnet_count
   domain = "vpc"
   tags = {
-    Name = "${var.env}-${var.eip_name}-${count.index + 1}"
+    Name = "${var.env}-nat-eip-${count.index + 1}"
   }
 }
 
@@ -70,7 +73,7 @@ resource "aws_nat_gateway" "main" {
   allocation_id = aws_eip.nat[count.index].id
   subnet_id     = aws_subnet.public[count.index].id
   tags = {
-    Name = "${var.env}-${var.ngw_name}-${count.index + 1}"
+    Name = "${var.env}-nat-gw-${count.index + 1}"
   }
   depends_on = [aws_internet_gateway.main]
 }
@@ -84,7 +87,7 @@ resource "aws_route_table" "private" {
     nat_gateway_id = aws_nat_gateway.main[count.index].id
   }
   tags = {
-    Name = "${var.env}-${var.private_rt_name}-${count.index + 1}"
+    Name = "${var.env}-private-rt-${count.index + 1}"
   }
 }
 
