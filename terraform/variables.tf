@@ -1,37 +1,171 @@
-variable "aws_region" {
-  description = "The AWS region to deploy resources in."
+# General
+variable "env" {
+  description = "The deployment environment name."
   type        = string
+}
+
+variable "aws_region" {
+  description = "The AWS region for deployment."
+  type        = string
+}
+
+# VPC Networking
+variable "vpc_cidr_block" {
+  description = "CIDR block for the VPC."
+  type        = string
+}
+
+variable "vpc_name" {
+  description = "Name for the VPC."
+  type        = string
+}
+
+variable "igw_name" {
+  description = "Name for the Internet Gateway."
+  type        = string
+}
+
+variable "pub_subnet_count" {
+  description = "Number of public subnets."
+  type        = number
+}
+
+variable "pub_cidr_block" {
+  description = "CIDR blocks for public subnets."
+  type        = list(string)
+}
+
+variable "pub_availability_zone" {
+  description = "Availability Zones for public subnets."
+  type        = list(string)
+}
+
+variable "pub_sub_name" {
+  description = "Base name for public subnets."
+  type        = string
+}
+
+variable "pri_subnet_count" {
+  description = "Number of private subnets."
+  type        = number
+}
+
+variable "pri_cidr_block" {
+  description = "CIDR blocks for private subnets."
+  type        = list(string)
+}
+
+variable "pri_availability_zone" {
+  description = "Availability Zones for private subnets."
+  type        = list(string)
+}
+
+variable "pri_sub_name" {
+  description = "Base name for private subnets."
+  type        = string
+}
+
+variable "public_rt_name" {
+  description = "Name for the public route table."
+  type        = string
+}
+
+variable "private_rt_name" {
+  description = "Base name for private route tables."
+  type        = string
+}
+
+variable "eip_name" {
+  description = "Base name for Elastic IPs."
+  type        = string
+}
+
+variable "ngw_name" {
+  description = "Base name for NAT Gateways."
+  type        = string
+}
+
+variable "eks_sg" {
+  description = "Name for the EKS Cluster security group."
+  type        = string
+}
+
+# EKS Cluster
+variable "is_eks_cluster_enabled" {
+  description = "Flag to enable EKS cluster creation."
+  type        = bool
+  default     = false
 }
 
 variable "cluster_name" {
-  description = "The name for your EKS cluster."
+  description = "Name of the EKS cluster."
   type        = string
 }
 
-variable "vpc_cidr" {
-  description = "The CIDR block for the VPC."
+variable "cluster_version" {
+  description = "Kubernetes version for the EKS cluster."
   type        = string
-  default     = "10.0.0.0/16"
 }
 
-variable "public_subnets_cidr" {
-  description = "The CIDR blocks for the public subnets."
+variable "endpoint_private_access" {
+  description = "Enable private API server endpoint."
+  type        = bool
+  default     = true
+}
+
+variable "endpoint_public_access" {
+  description = "Enable public API server endpoint."
+  type        = bool
+  default     = false
+}
+
+# EKS Node Groups
+variable "ondemand_instance_types" {
+  description = "Instance types for the on-demand node group."
   type        = list(string)
-  default     = ["10.0.1.0/24", "10.0.2.0/24"]
 }
 
-variable "private_subnets_cidr" {
-  description = "The CIDR blocks for the private subnets."
+variable "spot_instance_types" {
+  description = "Instance types for the spot node group."
   type        = list(string)
-  default     = ["10.0.3.0/24", "10.0.4.0/24"]
 }
 
-variable "ssh_key_name" {
-  description = "The name of the EC2 key pair for SSH access to the jump host. You must create this beforehand."
+variable "desired_capacity_on_demand" {
+  description = "Desired number of on-demand nodes."
   type        = string
 }
 
-variable "my_ip" {
-  description = "Your public IP address to allow SSH access to the jump host. (e.g., '1.2.3.4/32')"
+variable "min_capacity_on_demand" {
+  description = "Minimum number of on-demand nodes."
   type        = string
+}
+
+variable "max_capacity_on_demand" {
+  description = "Maximum number of on-demand nodes."
+  type        = string
+}
+
+variable "desired_capacity_spot" {
+  description = "Desired number of spot nodes."
+  type        = string
+}
+
+variable "min_capacity_spot" {
+  description = "Minimum number of spot nodes."
+  type        = string
+}
+
+variable "max_capacity_spot" {
+  description = "Maximum number of spot nodes."
+  type        = string
+}
+
+# EKS Addons
+variable "addons" {
+  description = "A list of EKS addons to install."
+  type = list(object({
+    name    = string
+    version = string
+  }))
+  default = []
 }
