@@ -18,11 +18,7 @@ variable "vpc_cidr_block" {
 variable "vpc_name" {
   description = "Name for the VPC."
   type        = string
-}
-
-variable "igw_name" {
-  description = "Name for the Internet Gateway."
-  type        = string
+  default     = "vpc"
 }
 
 variable "pub_subnet_count" {
@@ -40,11 +36,6 @@ variable "pub_availability_zone" {
   type        = list(string)
 }
 
-variable "pub_sub_name" {
-  description = "Base name for public subnets."
-  type        = string
-}
-
 variable "pri_subnet_count" {
   description = "Number of private subnets."
   type        = number
@@ -60,33 +51,14 @@ variable "pri_availability_zone" {
   type        = list(string)
 }
 
-variable "pri_sub_name" {
-  description = "Base name for private subnets."
+# Jump Host
+variable "jump_host_ssh_key_name" {
+  description = "The name of the EC2 key pair for SSH access."
   type        = string
 }
 
-variable "public_rt_name" {
-  description = "Name for the public route table."
-  type        = string
-}
-
-variable "private_rt_name" {
-  description = "Base name for private route tables."
-  type        = string
-}
-
-variable "eip_name" {
-  description = "Base name for Elastic IPs."
-  type        = string
-}
-
-variable "ngw_name" {
-  description = "Base name for NAT Gateways."
-  type        = string
-}
-
-variable "eks_sg" {
-  description = "Name for the EKS Cluster security group."
+variable "jump_host_allowed_ip" {
+  description = "Your public IP to allow SSH access to the jump host."
   type        = string
 }
 
