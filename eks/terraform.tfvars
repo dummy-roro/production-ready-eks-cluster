@@ -4,13 +4,13 @@ vpc-cidr-block        = "10.16.0.0/16"
 vpc-name              = "vpc"
 igw-name              = "igw"
 
-# Public subnets in 2 AZs
+# Public subnets in 3 AZs
 pub-subnet-count      = 3
 pub-cidr-block        = ["10.16.0.0/20", "10.16.16.0/20", "10.16.32.0/20"]
 pub-availability-zone = ["ap-southeast-1a", "ap-southeast-1b", "ap-southeast-1c"]
 pub-sub-name          = "subnet-public"
 
-# ✅ Updated: 3 private subnets for HA
+# 3 private subnets for HA
 pri-subnet-count      = 3
 pri-cidr-block        = ["10.16.128.0/20", "10.16.144.0/20", "10.16.160.0/20"]
 pri-availability-zone = ["ap-southeast-1a", "ap-southeast-1b", "ap-southeast-1c"]
@@ -19,9 +19,8 @@ pri-sub-name          = "subnet-private"
 public-rt-name        = "public-route-table"
 private-rt-name       = "private-route-table"
 
-# NAT-related values (unused now, can remove)
-eip-name              = "elasticip-ngw"
-ngw-name              = "ngw"
+#eip-name              = "elasticip-ngw"
+#ngw-name              = "ngw"
 
 eks-sg                = "eks-sg"
 
