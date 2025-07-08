@@ -1,0 +1,62 @@
+variable "env" {}
+variable "aws-region" {}
+
+# VPC settings
+variable "vpc-cidr-block" {}
+variable "vpc-name" {}
+variable "igw-name" {}
+variable "pub-subnet-count" {}
+variable "pub-cidr-block" {
+  type = list(string)
+}
+variable "pub-availability-zone" {
+  type = list(string)
+}
+variable "pub-sub-name" {}
+variable "pri-subnet-count" {}
+variable "pri-cidr-block" {
+  type = list(string)
+}
+variable "pri-availability-zone" {
+  type = list(string)
+}
+variable "pri-sub-name" {}
+variable "public-rt-name" {}
+variable "private-rt-name" {}
+variable "eip-name" {}
+variable "ngw-name" {}
+
+# EKS security group
+variable "eks-sg" {}
+
+# EKS Cluster settings
+variable "is-eks-cluster-enabled" {}
+variable "cluster-version" {}
+variable "cluster-name" {}
+variable "endpoint-private-access" {}
+variable "endpoint-public-access" {}
+
+# Node group settings
+variable "ondemand_instance_types" {
+  type = list(string)
+}
+variable "spot_instance_types" {
+  type = list(string)
+}
+variable "desired_capacity_on_demand" {}
+variable "min_capacity_on_demand" {}
+variable "max_capacity_on_demand" {}
+variable "desired_capacity_spot" {}
+variable "min_capacity_spot" {}
+variable "max_capacity_spot" {}
+
+# Add-ons
+variable "addons" {
+  type = list(object({
+    name    = string
+    version = string
+  }))
+}
+
+# Bastion
+variable "bastion_key_pair_name" {}
