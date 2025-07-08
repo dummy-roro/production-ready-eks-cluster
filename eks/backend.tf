@@ -1,3 +1,5 @@
+# backend.tf
+
 terraform {
   required_version = "~> 1.9.3"
   required_providers {
@@ -16,5 +18,5 @@ terraform {
 }
 
 provider "aws" {
-  region  = var.aws-region
+  region = var.aws_region
 }
