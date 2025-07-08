@@ -1,44 +1,26 @@
 locals {
   org = "solaraTek"
-  env = var.env
+  tags = {
+    Organization = local.org
+    Environment  = var.env
+  }
 }
 
-module "eks" {
-  source = "../module"
+module "eks_cluster" {
+  source = "./module"
 
-  env                   = var.env
-  cluster-name          = "${local.env}-${local.org}-${var.cluster-name}"
-  cidr-block            = var.vpc-cidr-block
-  vpc-name              = "${local.env}-${local.org}-${var.vpc-name}"
-  igw-name              = "${local.env}-${local.org}-${var.igw-name}"
-  pub-subnet-count      = var.pub-subnet-count
-  pub-cidr-block        = var.pub-cidr-block
-  pub-availability-zone = var.pub-availability-zone
-  pub-sub-name          = "${local.env}-${local.org}-${var.pub-sub-name}"
-  pri-subnet-count      = var.pri-subnet-count
-  pri-cidr-block        = var.pri-cidr-block
-  pri-availability-zone = var.pri-availability-zone
-  pri-sub-name          = "${local.env}-${local.org}-${var.pri-sub-name}"
-  public-rt-name        = "${local.env}-${local.org}-${var.public-rt-name}"
-  private-rt-name       = "${local.env}-${local.org}-${var.private-rt-name}"
-  eip-name              = "${local.env}-${local.org}-${var.eip-name}"
-  ngw-name              = "${local.env}-${local.org}-${var.ngw-name}"
-  eks-sg                = var.eks-sg
-
-  is_eks_role_enabled           = true
-  is_eks_nodegroup_role_enabled = true
-  ondemand_instance_types       = var.ondemand_instance_types
-  spot_instance_types           = var.spot_instance_types
-  desired_capacity_on_demand    = var.desired_capacity_on_demand
-  min_capacity_on_demand        = var.min_capacity_on_demand
-  max_capacity_on_demand        = var.max_capacity_on_demand
-  desired_capacity_spot         = var.desired_capacity_spot
-  min_capacity_spot             = var.min_capacity_spot
-  max_capacity_spot             = var.max_capacity_spot
-  is-eks-cluster-enabled        = var.is-eks-cluster-enabled
-  cluster-version               = var.cluster-version
-  endpoint-private-access       = var.endpoint-private-access
-  endpoint-public-access        = var.endpoint-public-access
-
-  addons = var.addons
+  # Pass all variables to the module
+  env                       = var.env
+  aws_region                = var.aws_region
+  cluster_name              = var.cluster_name
+  cluster_version           = var.cluster_version
+  vpc_cidr_block            = var.vpc_cidr_block
+  public_subnets            = var.public_subnets
+  private_subnets           = var.private_subnets
+  node_groups               = var.node_groups
+  addons                    = var.addons
+  endpoint_private_access   = var.endpoint_private_access
+  endpoint_public_access    = var.endpoint_public_access
+  trusted_security_group_id = var.trusted_security_group_id
+  tags                      = local.tags
 }
