@@ -1,7 +1,5 @@
 variable "env" {}
 variable "aws-region" {}
-
-# VPC settings
 variable "vpc-cidr-block" {}
 variable "vpc-name" {}
 variable "igw-name" {}
@@ -25,18 +23,12 @@ variable "public-rt-name" {}
 variable "private-rt-name" {}
 variable "eip-name" {}
 variable "ngw-name" {}
-
-# EKS security group
 variable "eks-sg" {}
-
-# EKS Cluster settings
 variable "is-eks-cluster-enabled" {}
 variable "cluster-version" {}
 variable "cluster-name" {}
 variable "endpoint-private-access" {}
 variable "endpoint-public-access" {}
-
-# Node group settings
 variable "ondemand_instance_types" {
   type = list(string)
 }
@@ -49,14 +41,10 @@ variable "max_capacity_on_demand" {}
 variable "desired_capacity_spot" {}
 variable "min_capacity_spot" {}
 variable "max_capacity_spot" {}
-
-# Add-ons
+variable "bastion_key_pair_name" {}
 variable "addons" {
   type = list(object({
     name    = string
     version = string
   }))
 }
-
-# Bastion
-variable "bastion_key_pair_name" {}
