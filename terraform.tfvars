@@ -34,7 +34,7 @@ desired_capacity_spot      = "2"
 min_capacity_spot          = "1"
 max_capacity_spot          = "5"
 
-bastion_key_pair_name      = "your-key-name"  # replace with your key name
+bastion_key_pair_name      = "your-key-name"
 
 addons = [
   {
