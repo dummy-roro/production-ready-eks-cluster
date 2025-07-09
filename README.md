@@ -6,28 +6,45 @@
 
 ## Overview
 
-This Terraform project provisions a **private Amazon EKS cluster** with a **bastion host** for secure access. It uses a **modular architecture** to cleanly separate infrastructure components like VPC, IAM, EKS, and Bastion.
+This Terraform project provisions a **private Amazon EKS cluster** using a **modular architecture**, along with a **bastion host** that provides secure CLI and SSM-based access.
 
 ## 📂 Project Structure
 
 ```
 production-ready-eks-cluster/
-├── main.tf                 # Root Terraform config
-├── variables.tf            # Input variables
-├── outputs.tf              # Outputs for reference
-├── dev.tfvars              # Dev environment values
-│
+├── README.md                    # Full documentation
+├── backend.tf                   # Remote state config
+├── main.tf                      # Module orchestrator
+├── variables.tf                 # Input declarations
+├── outputs.tf                   # Key outputs
+├── terraform.tfvars             # Environment configuration
 ├── modules/
-│   ├── vpc/                # VPC, Subnets, IGW, NAT, Routing
-│   ├── bastion/            # Bastion EC2 instance + SSM
-│   ├── eks/                # EKS Cluster, Node Groups, aws-auth
-│   └── iam/                # IAM Roles for EKS + Bastion
-└── README.md
+│   ├── vpc/                     # VPC networking and subnets
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   └── outputs.tf
+│   ├── bastion/                 # Bastion host and security group
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   ├── outputs.tf
+│   │   └── userdata.sh
+│   ├── eks/                     # EKS cluster
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   └── outputs.tf
+│   ├── nodegroups/              # On-demand & spot node groups
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   └── outputs.tf
+└── extras/
+    └── irsa.tf                  # IRSA roles for secure pod access (optional)
+    
+
 ```
 
 ## 🔧 Prerequisites
 
-- Terraform >= 1.32
+- Terraform >= 1.3
 - AWS CLI configured (`aws configure`)
 - Existing EC2 Key Pair name (for Bastion)
 - IAM user with privileges to provision VPC, EC2, EKS, IAM, etc.
@@ -54,24 +71,17 @@ terraform apply -var-file="terraform.tfvars"
 
 ## 📡 Accessing the Cluster
 
-This is a **private EKS cluster**, so access is granted via a **bastion host**.
+| Method                  | How it Works                                                                           |
+|-------------------------|----------------------------------------------------------------------------------------|
+| `SSM`                   |Via IAM Role `aws ssm start-session`                                                    |
+| `SSH`                   | Using EC2 key pair and public IP                                                       |
 
-### ✅ Option 1: AWS Systems Manager (Recommended)
-
-Use SSM Session Manager to connect:
+### Once connected, you're ready to run:
 
 ```bash
-aws ssm start-session --target <instance-id>
+kubectl get nodes
+kubectl cluster-info
 ```
-
-Or
-
-EC2 connect via SSM in AWS console.
-
-
-### ✅ Option 2: SSH (Fallback)
-
-Ensure port 22 is open and your IP is whitelisted in security group.
 
 ## 🔐 IAM Roles
 
@@ -97,7 +107,8 @@ Define add-ons in `terraform.tfvars`:
 addons = [
   { name = "vpc-cni", version = "v1.19.2-eksbuild.1" },
   { name = "coredns", version = "v1.11.4-eksbuild.1" },
-  ...
+  { name = "kube-proxy", version = "v1.31.3-eksbuild.2" },
+  { name = "aws-ebs-csi-driver", version = "v1.38.1-eksbuild.1" }
 ]
 ```
 
