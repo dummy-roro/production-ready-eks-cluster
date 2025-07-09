@@ -1,4 +1,4 @@
 variable "vpc_id" {}
 variable "public_subnet_id" {}
-variable "bastion_key_pair" {}
-variable "bastion_role_arn" {}
+variable "key_pair_name" {}
+variable "env" {}
