@@ -1,47 +1,68 @@
-resource "aws_iam_role" "bastion_ssm_role" {
-  name               = "bastion-ssm-role"
-  assume_role_policy = data.aws_iam_policy_document.ec2_assume.json
-}
+data "aws_ami" "amazon_linux" {
+  most_recent = true
+  owners      = ["amazon"]
 
-data "aws_iam_policy_document" "ec2_assume" {
-  statement {
-    effect = "Allow"
-    actions = ["sts:AssumeRole"]
-
-    principals {
-      type        = "Service"
-      identifiers = ["ec2.amazonaws.com"]
-    }
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
   }
 }
 
-resource "aws_iam_instance_profile" "bastion_profile" {
-  name = "bastion-instance-profile"
-  role = aws_iam_role.bastion_ssm_role.name
-}
+resource "aws_security_group" "bastion_sg" {
+  name        = "bastion-sg"
+  description = "Security group for Bastion host"
+  vpc_id      = var.vpc_id
 
-resource "aws_iam_role_policy_attachment" "ssm" {
-  role       = aws_iam_role.bastion_ssm_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-}
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
-resource "aws_iam_role_policy_attachment" "eks_access" {
-  role       = aws_iam_role.bastion_ssm_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "bastion-sg"
+  }
 }
 
 resource "aws_instance" "bastion" {
   ami                         = data.aws_ami.amazon_linux.id
   instance_type               = "t3.micro"
-  key_name                    = var.key_pair_name
-  subnet_id                   = var.public_subnet_id
+  subnet_id                   = var.public_subnet_ids[0]
+  key_name                    = var.bastion_key_pair_name
   associate_public_ip_address = true
+  iam_instance_profile        = var.bastion_instance_profile
   vpc_security_group_ids      = [aws_security_group.bastion_sg.id]
-  iam_instance_profile        = aws_iam_instance_profile.bastion_profile.name
-  user_data                   = file("${path.module}/userdata.sh")
+
+  user_data = <<-EOF
+    #!/bin/bash
+    yum update -y
+    yum install -y curl unzip amazon-ssm-agent
+    systemctl enable amazon-ssm-agent
+    systemctl start amazon-ssm-agent
+
+    curl -o kubectl https://amazon-eks.s3.${var.aws_region}.amazonaws.com/${var.cluster_version}/2023-12-22/bin/linux/amd64/kubectl
+    chmod +x kubectl
+    mv kubectl /usr/local/bin/
+
+    aws eks update-kubeconfig --region ${var.aws_region} --name ${var.cluster_name}
+  EOF
 
   tags = {
-    Name = "bastion-host"
-    Env  = var.env
+    Name = "eks-bastion"
   }
 }
