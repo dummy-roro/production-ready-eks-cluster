@@ -12,34 +12,33 @@ This Terraform project provisions a **private Amazon EKS cluster** using a **mod
 
 ```
 production-ready-eks-cluster/
-├── README.md                    # Full documentation
-├── backend.tf                   # Remote state config
-├── main.tf                      # Module orchestrator
-├── variables.tf                 # Input declarations
-├── outputs.tf                   # Key outputs
-├── terraform.tfvars             # Environment configuration
-├── modules/
-│   ├── vpc/                     # VPC networking and subnets
-│   │   ├── main.tf
-│   │   ├── variables.tf
-│   │   └── outputs.tf
-│   ├── bastion/                 # Bastion host and security group
-│   │   ├── main.tf
-│   │   ├── variables.tf
-│   │   ├── outputs.tf
-│   │   └── userdata.sh
-│   ├── eks/                     # EKS cluster
-│   │   ├── main.tf
-│   │   ├── variables.tf
-│   │   └── outputs.tf
-│   ├── nodegroups/              # On-demand & spot node groups
-│   │   ├── main.tf
-│   │   ├── variables.tf
-│   │   └── outputs.tf
-└── extras/
-    └── irsa.tf                  # IRSA roles for secure pod access (optional)
-    
-
+├── README.md               # Full Documentation
+├── main.tf                 # Root orchestration: wires modules together
+├── variables.tf            # Declares root-level variables passed to modules
+├── outputs.tf              # Exposes useful outputs (cluster name, IPs)
+├── provider.tf             # AWS provider + remote backend config (S3 + DynamoDB)
+├── terraform.tfvars        # Your input config (environment, instance types, etc.)
+└── modules/
+    ├── vpc/
+    │   ├── main.tf         # VPC, subnets, route tables, NAT gateway
+    │   ├── variables.tf    # VPC-related variables
+    │   └── outputs.tf      # VPC outputs: subnet IDs, VPC ID
+    ├── iam/
+    │   ├── main.tf         # IAM roles, policies, instance profiles
+    │   ├── variables.tf    # Node group and Bastion IAM policies
+    │   └── outputs.tf      # Role ARNs and Bastion profile
+    ├── eks/
+    │   ├── main.tf         # EKS cluster, on-demand + spot node groups
+    │   ├── variables.tf    # Cluster settings and capacities
+    │   └── outputs.tf      # Endpoint, cert authority, cluster name
+    ├── bastion/
+    │   ├── main.tf         # EC2 Bastion host with kubectl + SSM agent
+    │   ├── variables.tf    # Key pair, subnet, instance profile
+    │   └── outputs.tf      # Bastion IP, instance ID
+    └── eks_addons/
+        ├── main.tf         # Installs core EKS add-ons: VPC CNI, CoreDNS, etc.
+        ├── variables.tf    # Addon list with version mapping
+        └── outputs.tf      # Installed addon names
 ```
 
 ## 🔧 Prerequisites
@@ -71,10 +70,10 @@ terraform apply -var-file="terraform.tfvars"
 
 ## 📡 Accessing the Cluster
 
-| Method                  | How it Works                                                                           |
-|-------------------------|----------------------------------------------------------------------------------------|
-| `SSM`                   |Via IAM Role `aws ssm start-session`                                                    |
-| `SSH`                   | Using EC2 key pair and public IP                                                       |
+| Method                  | How it Works                                                                                 |
+|-------------------------|----------------------------------------------------------------------------------------------|
+| `SSM`                   | Via IAM Role `aws ssm start-session --target <bastion_instance_id>`                          |
+| `SSH`                   | Using EC2 key pair and public IP `ssh -i /path/to/your-key.pem ec2-user@<bastion_public_ip>` |
 
 ### Once connected, you're ready to run:
 
