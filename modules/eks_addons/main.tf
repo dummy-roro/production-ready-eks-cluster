@@ -4,5 +4,5 @@ resource "aws_eks_addon" "addons" {
   cluster_name   = var.cluster_name
   addon_name     = each.key
   addon_version  = each.value.version
-  resolve_conflicts = "OVERWRITE"
+  #resolve_conflicts = "OVERWRITE"
 }
