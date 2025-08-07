@@ -19,10 +19,10 @@ ngw-name              = "ngw"
 eks-sg                = "eks-sg"
 
 is-eks-cluster-enabled     = true
-cluster-version            = "1.32"
+cluster-version            = "1.33"
 cluster-name               = "eks-cluster"
 endpoint-private-access    = true
-endpoint-public-access     = false
+endpoint-public-access     = private
 
 ondemand_instance_types    = ["t3a.medium"]
 spot_instance_types        = ["t3a.medium", "t3.medium"]
@@ -39,18 +39,18 @@ bastion_key_pair_name      = "your-key-name"
 addons = [
   {
     name    = "vpc-cni"
-    version = "v1.19.2-eksbuild.1"
+    version = "v1.20.0-eksbuild.1"
   },
   {
     name    = "coredns"
-    version = "v1.11.4-eksbuild.1"
+    version = "v1.12.2-eksbuild.4"
   },
   {
     name    = "kube-proxy"
-    version = "v1.31.3-eksbuild.2"
+    version = "v1.33.0-eksbuild.2"
   },
   {
     name    = "aws-ebs-csi-driver"
-    version = "v1.38.1-eksbuild.1"
+    version = "v1.46.1-eksbuild.1"
   }
 ]
